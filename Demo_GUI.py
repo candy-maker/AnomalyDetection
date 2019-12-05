@@ -31,35 +31,36 @@ import cv2
 import os, sys
 import pickle
 from PyQt5 import QtGui, QtWidgets   # If PyQt4 is not working in your case, you can try PyQt5, 
+from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog
 seed = 7
 numpy.random.seed(seed)
 
 def load_model(json_path):
-#    model = model_from_json(open(json_path).read())            #experimental line
-    model = model_from_json(open("model.json").read())          #import convolution parameters from model.json for keras 1.1
-#    ,custom_objects={'WeightRegularizer':W_regularizer}        #experimental line to remove error
+#    model = model_from_json(open(json_path).read())
+    model = model_from_json(open("model.json").read())
+#    ,custom_objects={'WeightRegularizer':W_regularizer}
     return model
 
 def load_weights(model, weight_path):
-    dict2 = loadmat(weight_path)                                #load matrix weight_path (weights_l1l2)
-    dict = conv_dict(dict2)                                     #calling conv_dict defined later
-    i = 0                                                       #set i=0
+    dict2 = loadmat(weight_path)
+    dict = conv_dict(dict2)
+    i = 0
     for layer in model.layers:
-        weights = dict[str(i)]                                  #weights = string i from dictionary
-        layer.set_weights(weights)                              #assign weights value to the layers
-        i += 1                                                  #increase i by 1
+        weights = dict[str(i)]
+        layer.set_weights(weights)
+        i += 1
     return model
 
 def conv_dict(dict2): # Helper function to save the model
-    i = 0                                                       #set i=0
-    dict = {}                                                   #make array dict
-    for i in range(len(dict2)):                                 #for loop for i less than in length of dict2 (the weight matrix)
-        if str(i) in dict2:                                     #if the string i is in the dict2 then
-            if dict2[str(i)].shape == (0, 0):                   #if the matrix is a zero matrix
-                dict[str(i)] = dict2[str(i)]                    #the dict is same as dict2
+    i = 0
+    dict = {}
+    for i in range(len(dict2)):
+        if str(i) in dict2:
+            if dict2[str(i)].shape == (0, 0):
+                dict[str(i)] = dict2[str(i)]
             else:
-                weights = dict2[str(i)][0]                      
-                weights2 = []                                   #weights2 is in empty matrix    
+                weights = dict2[str(i)][0]
+                weights2 = []
                 for weight in weights:
                     if weight.shape in [(1, x) for x in range(0, 5000)]:
                         weights2.append(weight[0])
@@ -76,7 +77,7 @@ def savitzky_golay(y, window_size, order, deriv=0, rate=1):
     #except ValueError, msg:
     #    raise ValueError("window_size and order have to be of type int")
 
-    if window_size % 2 != 1 or window_size < 1:               #check for odd number
+    if window_size % 2 != 1 or window_size < 1:
         raise TypeError("window_size size must be a positive odd number")
 
     if window_size < order + 2:
@@ -99,24 +100,24 @@ def savitzky_golay(y, window_size, order, deriv=0, rate=1):
 
 # Load Video
 
-def load_dataset_One_Video_Features(Test_Video_Path):       #for video_path as passed argument
+def load_dataset_One_Video_Features(Test_Video_Path):
 
-    VideoPath =Test_Video_Path                              #assignt the address of Test_Video_Path to VideoPath
-    f = open(VideoPath, "r")                                #opern video path in read
-    words = f.read().split()                                #assign the 
-    num_feat = len(words) / 4096                            #the features extracted are divided to get the features for one video
+    VideoPath =Test_Video_Path
+    f = open(VideoPath, "r")
+    words = f.read().split()
+    num_feat = len(words) / 4096
     # Number of features per video to be loaded. In our case num_feat=32, as we divide the video into 32 segments. Npte that
     # we have already computed C3D features for the whole video and divide the video features into 32 segments.
 
-    count = -1;                                             #set count to -1
-    VideoFeatues = []                                       #define matrix videofeatures
-    for feat in range(0, int(num_feat)):                    #for feat in between 0 and max num of features
-        feat_row1 = np.float32(words[feat * 4096:feat * 4096 + 4096]) #linear stacking of features in feat_row1
-        count = count + 1                                   #increment t
+    count = -1;
+    VideoFeatues = []
+    for feat in range(0, int(num_feat)):
+        feat_row1 = np.float32(words[feat * 4096:feat * 4096 + 4096])
+        count = count + 1
         if count == 0:
             VideoFeatues = feat_row1
         if count > 0:
-            VideoFeatues = np.vstack((VideoFeatues, feat_row1)) #stack video features and feat_row1 vertically
+            VideoFeatues = np.vstack((VideoFeatues, feat_row1))
     AllFeatures = VideoFeatues
 
     return  AllFeatures
@@ -157,7 +158,7 @@ class PrettyWidget(QtWidgets.QWidget):
 
 
     def SingleBrowse(self):
-        video_path = QtGui.QFileDialog.getOpenFileName(self,
+        video_path = QtWidgets.QFileDialog.getOpenFileName(self,
                                                         'Single File',
                                                         "/home/prawns/AnomalyDetectionCVPR2018/Normal_test_abn")
 
